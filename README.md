@@ -1,4 +1,6 @@
 # 💳 DIGITAL BANK - Python Bank Account System
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+
 
 A simple yet secure Python-based banking system where users can register, log in using a 4-digit PIN, and perform transactions. All data is stored locally in JSON format, and transaction histories are maintained for each account.
 
