@@ -8,10 +8,15 @@ ACCOUNT_FILE = "accounts.json"
 
 
 if os.path.exists(ACCOUNT_FILE):
-    with open(ACCOUNT_FILE, "r") as f:  
-        accounts = json.load(f)
+    try:
+        with open(ACCOUNT_FILE, "r") as f:
+            accounts = json.load(f)
+    except json.JSONDecodeError:
+        print("⚠️ Warning: accounts.json is corrupted. Starting with empty database.")
+        accounts = {}
 else:
-    accounts = {} 
+    accounts = {}
+
 
 class BankAccount:
     def __init__(self,acc_no, name, pin, balance=0):
@@ -46,6 +51,9 @@ class BankAccount:
             print(f"Sorry but you reached the withdrawal limit. withdraw remaining amount {amount - 25000} in your next transection.. ")
 
     def transaction(self, receiver , amount):
+        if amount <= 0:
+         print("Amount must be positive!")
+         return
 
         if self.balance >= amount:
             self.balance -= amount
@@ -155,7 +163,7 @@ while True:
                 print("5. Show History")
                 print("6. Exit")
 
-                choice = input("Enter choice (1/2/3/4/5): ")
+                choice = input("Enter choice (1/2/3/4/5): ").strip().lower()
 
                 if choice == "1":
                     amount = float(input("Enter deposit amount: "))
@@ -185,7 +193,7 @@ while True:
                 elif choice == "6":
                     save_account(acc_no, account)
                     print("Logged out successfully.")
-                    sys.exit()
+                    break
                     
                 else:
                     print("Invalid choice. Please try again.")
