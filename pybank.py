@@ -45,7 +45,7 @@ class BankAccount:
             print(f"Withdrew amount 25000 , new balance is {self.balance}")
             print(f"Sorry but you reached the withdrawal limit. withdraw remaining amount {amount - 25000} in your next transection.. ")
 
-    def transection(self, receiver , amount):
+    def transaction(self, receiver , amount):
 
         if self.balance >= amount:
             self.balance -= amount
@@ -147,10 +147,10 @@ while True:
 
                 
             while True: 
-                print("\\nChoose an option:")
+                print("\nChoose an option:")
                 print("1. Deposit")
                 print("2. Withdraw")
-                print("3. Transection")
+                print("3. Transaction")
                 print("4. Check Balance")
                 print("5. Show History")
                 print("6. Exit")
@@ -166,15 +166,17 @@ while True:
 
                 elif choice == "3":
                     receivers_acc_number = input("Enter receiver's account number:  ")
-                    amount = int(input("Enter the transection amount:  "))
+                    amount = int(input("Enter the transaction amount:  "))
                     input_pin = hash_pin(getpass.getpass("Please Renter your 4-Digit pin for just security purpose:  "))
                     if accounts[acc_no]['pin'] == input_pin:
                         receiver = load_account_by_acc_no(receivers_acc_number)
-                        account.transection(receiver , amount)
+                        if receiver:
+                            account.transaction(receiver , amount)
+                            save_account(account.acc_no, account)
+                            save_account(receiver.acc_no, receiver)
                     else:
                         print("Enter the right pin please....!")
-                    save_account(account.acc_no, account)
-                    save_account(receiver.acc_no, receiver)
+              
 
                 elif choice == "4":
                     account.check_balance()
