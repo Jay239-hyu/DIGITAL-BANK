@@ -64,7 +64,14 @@ Account created! Your account number is: 1001
 PINs are hashed using SHA-256, so raw PINs are never stored.
 accounts.json is excluded from the public repository using .gitignore to prevent leaking user data.
 
-🧾 License: This project is licensed under the GNU GPL v3 License.
+## 🧾 License
+
+This project is licensed under the **GNU General Public License v3.0**.  
+You are free to use, modify, and distribute this project under the terms of the license.  
+However, any derivative work must also be released under the same license.
+
+[Click here to read the full license](https://www.gnu.org/licenses/gpl-3.0.html)
+
 
 
 
