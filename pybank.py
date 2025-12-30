@@ -1,214 +1,127 @@
-import json
-import os
-import hashlib
-import sys
+from Account import Account
+from BankData import BankData
+from utils import hash_pin
 import getpass
 
-ACCOUNT_FILE = "accounts.json"
+
+def main():
+    while True:
+        # Main program
+        print("Welcome to the Python Bank!")
+        print("1. Register")
+        print("2. Login")
 
 
-if os.path.exists(ACCOUNT_FILE):
-    try:
-        with open(ACCOUNT_FILE, "r") as f:
-            accounts = json.load(f)
-    except json.JSONDecodeError:
-        print("⚠️ Warning: accounts.json is corrupted. Starting with empty database.")
-        accounts = {}
-else:
-    accounts = {}
+        choice = input("Enter your choice:  ")
+        if choice == "1":
+            name = input("Set your username to create account:  ")
+            pin = getpass.getpass("Enter your 4 digit PIN :  ")
+            status , account_number = BankData.create_account(name , pin)
 
+            if status == "INVALID PIN":
+                print("Invalid PIN")
+            elif status == "SUCCESS":
+                print(f"Account was created in our DataBase and your account number is {account_number}")
 
-class BankAccount:
-    def __init__(self,acc_no, name, pin, balance=0):
-        self.acc_no = acc_no
-        self.name = name
-        self.pin = pin
-        self.balance = balance
-        self.history = []
-       
-    def deposit(self, amount): 
-        if amount > 0:
-            self.balance += amount
-            self.history.append(f"Deposited: {amount}")
-            print(f"Deposit amount is {amount}, new balance is {self.balance}")
-        else:
-            print("Amount must be positive.")
-        
-
-    def withdraw(self, amount):
-        if amount > self.balance:
-            print("No sufficient funds, sorry!")
-        elif amount < 0:
-            print("Amount must be positive!")
-        elif(amount>0 and amount<=25000):
-            self.balance -= amount
-            self.history.append(f"Withdrew: {amount}")
-            print(f"Withdrew amount {amount}, new balance is {self.balance}")
-        elif amount > 25000:
-            self.balance -= 25000
-            self.history.append("withdraw: 25000")
-            print(f"Withdrew amount 25000 , new balance is {self.balance}")
-            print(f"Sorry but you reached the withdrawal limit. withdraw remaining amount {amount - 25000} in your next transection.. ")
-
-    def transaction(self, receiver , amount):
-        if amount <= 0:
-         print("Amount must be positive!")
-         return
-
-        if self.balance >= amount:
-            self.balance -= amount
-            receiver.balance += amount
-            print(f"{amount} transferred from {self.acc_no} to {receiver.acc_no}")
-        else:
-            print("Insufficient funds!")
-        
-        self.history.append(f"Send:{amount} to {receiver.acc_no}")
-        receiver.history.append(f"Receive:{amount} from {self.acc_no}")
-
-    def check_balance(self):
-        print(f"{self.name}'s account balance = {self.balance}")
-
-    def show_history(self):
-        print("Transaction History:")
-        for entry in self.history: 
-            print(entry)
-
-
-def hash_pin(pin):
-    return hashlib.sha256(pin.encode()).hexdigest()
-
-
-def save_account(account_number, account):
-    accounts[account_number] = {
-        "name": account.name,
-        "pin": account.pin,
-        "balance": account.balance,
-        "history": account.history
-        
-    }
-    with open(ACCOUNT_FILE, "w") as f:
-        json.dump(accounts, f , indent=4)
-
-def load_account_by_acc_no(account_number):
-    if account_number in accounts:
-        data = accounts[account_number]
-        acc = BankAccount(account_number, data["name"], data["pin"], data["balance"]) #Here acc is a object of BankAccount class.
-
-        acc.history = data.get("history", [])
-        return acc
-    else: 
-     return None
-    
-
-def load_account(account_number, hashed_input):
-    if account_number in accounts and accounts[account_number]["pin"] == hashed_input:
-        data = accounts[account_number]
-        acc = BankAccount(account_number, data["name"], data["pin"], data["balance"])
-        acc.history = data.get("history", [])
-        return acc
-    else:
-     return None
-    
-while True:
-    # Main program
-    print("Welcome to the Python Bank!")
-    print("1. Register")
-    print("2. Login")
-    choice = input("Choose option: ")
-    
-    if choice == "1":
-        name = input("Enter your name: ")
-        while True:
-          pin = getpass.getpass("Set 4-digit PIN: ")
-          if len(pin) != 4 or not pin.isdigit():
-            print("❌ Invalid PIN. Please enter exactly 4 numeric digits.")
-            continue
-          break
-    
-        hashed_pin = hash_pin(pin)
-        account_number = str(len(accounts) + 1001)
-        new_account = BankAccount(account_number, name, hashed_pin) #Here New account is a object of Bankaccount class.
-        save_account(account_number, new_account)
-        print(f"Account created! Your account number is: {account_number}")
-       
-
-    elif choice == "2":
-        
-        acc_no = input("Enter account number: ")
-        if acc_no not in accounts:
-             print("❌ Account not found. Please register first.")
-             continue
-
-        count = 1   
-        while count <= 3:
-         pin = getpass.getpass("Enter PIN: ")
-         hashed_input = hash_pin(pin)
-         account = load_account(acc_no, hashed_input)
-       
-    
-            
-            
-         if account:
-            print("✅ Login success")
-
-
+        elif choice == "2":
+            acc_no = input("Enter account number: ")
+            count = 1   
+            while count <= 3:
+                pin = getpass.getpass("Enter PIN: ")
+                hashed_input = hash_pin(pin)
+                status , acc  = BankData.load_account(acc_no, hashed_input)
 
                 
-            while True: 
-                print("\nChoose an option:")
-                print("1. Deposit")
-                print("2. Withdraw")
-                print("3. Transaction")
-                print("4. Check Balance")
-                print("5. Show History")
-                print("6. Exit")
+                if status == "SUCCESS":
+                    print("✅ Login success")
+                    break  #--> Break the login loop
 
-                choice = input("Enter choice (1/2/3/4/5): ").strip().lower()
+                elif(status == "WRONG_PIN"):
+                    print(f"Incorrect PIN , Your remaining tries for login:{3-count}")
+                    count += 1
+                    continue
 
-                if choice == "1":
-                    amount = float(input("Enter deposit amount: "))
-                    account.deposit(amount)
-                elif choice == "2":
-                    amount = float(input("Enter withdrawal amount: "))
-                    account.withdraw(amount)
-
-                elif choice == "3":
-                    receivers_acc_number = input("Enter receiver's account number:  ")
-                    amount = int(input("Enter the transaction amount:  "))
-                    input_pin = hash_pin(getpass.getpass("Please Renter your 4-Digit pin for just security purpose:  "))
-                    if accounts[acc_no]['pin'] == input_pin:
-                        receiver = load_account_by_acc_no(receivers_acc_number)
-                        if receiver:
-                            account.transaction(receiver , amount)
-                            save_account(account.acc_no, account)
-                            save_account(receiver.acc_no, receiver)
-                    else:
-                        print("Enter the right pin please....!")
-              
-
-                elif choice == "4":
-                    account.check_balance()
-                elif choice == "5":
-                    account.show_history()
-                elif choice == "6":
-                    save_account(acc_no, account)
-                    print("Logged out successfully.")
-                    break
+                elif(status == "NO_ACCOUNT"):
+                    print("Account doesn't exist in our Database")
+                    break  #--> Break the login loop
+                
                     
-                else:
-                    print("Invalid choice. Please try again.")
-        
-         else:              
-            print("❌ Login failed")
-            print(f"Please enter the valid pin! now you have only {3-count} attempts") 
-            count += 1
+            if status == "SUCCESS":
 
+                while True: 
+                    print("\nChoose an option:")
+                    print("1. Deposit")
+                    print("2. Withdraw")
+                    print("3. Transaction")
+                    print("4. Check Balance")
+                    print("5. Show History")
+                    print("6. Exit")
 
+                    option = input("Enter the number number after checked the Menu:  ")
+                    
+                    if option == '1':
+                        amount = int(input("Enter the amount to deposit:  "))
+                        status , msg  = acc.deposit(amount)
+                        if status == "SUCCESS":
+                            BankData.save_account(acc.acc_no , acc)
+                            print(msg)
+                        if status == "NEGATIVE AMOUNT":
+                            print(msg)
+                        if status == "INVALID":
+                            print(msg)
 
+                    elif option == '2':
+                        amount = int(input("Enter the amount to withdrawal:  "))
+                        status , msg = acc.withdraw(amount)
+                        if status == "SUCCESS":
+                            BankData.save_account(acc.acc_no , acc)
+                            print(msg)
+                        if status == "NEGATIVE AMOUNT":
+                            print(msg)
+                        if status == "NO FUNDS":
+                            print(msg)
+                        if status == "INVALID":
+                            print(msg)
+
+                    elif option == '3':
+                        receiver_acc_no = int(input("Enter the receiver's account number:  "))
+                        amount = int(input("Enter the amount to transfar:  "))
+                        status , receiver = BankData.load_account_by_acc_no(receiver_acc_no)
+                        if status == 'SUCCESS':
+                            status , msg = acc.transection(receiver , amount)
+                            if status == "NEGATIVE AMOUNT":
+                                print(msg)
+                            elif status == "NO FUNDS":
+                                print(msg)
+                            elif status == "INVALID":
+                                print(msg)
+                            elif status == "SUCCESS":
+                                BankData.save_account(acc.acc_no , acc)
+                                BankData.save_account(receiver.acc_no , receiver)
+                                print(msg)
+                        else:
+                            print("Can't find receiver's account in our DataBase.")
+                        
+                    elif option == '4':
+                        msg = acc.check_balance()
+                        print(msg)
+
+                    elif option == '5':
+                       for h in acc.show_history():
+                           print(h)
+
+                    else:
+                        print("Logged out successfully.")
+                        break   # breaks account menu loop
+
+                        
+if __name__ == "__main__":
+    main()
 
 
                 
-     
+
+               
             
         
   
