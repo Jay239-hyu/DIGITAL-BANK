@@ -31,51 +31,57 @@ class Account:
     def deposit(self, amount): 
         if amount > 0:
             self.__balance += amount
-            self.history.append(f"Deposited: {amount}")
-            print(f"Deposit amount is {amount}, new balance is {self.__balance}")
+            self.__history.append(f"Deposited: {amount}")
+            return("SUCCESS",f"Deposit amount is {amount}, new balance is {self.__balance}")
+        elif(amount < 0):
+            return("NEGATIVE AMOUNT" , "Amount should be in positive")
         else:
-            print("Amount must be positive.")
+            return("INVALID" , "Please Enter a valid number")
+        
+        
 
     def withdraw(self, amount):
         MAX_WITHDRAW = 25000
         if amount > self.__balance:
-            print("No sufficient funds, sorry!")
+            return("NO FUNDS","No sufficient funds, sorry!")
         elif amount < 0:
-            print("Amount must be positive!")
+            return("NEGATIVE AMOUNT","Amount must be positive!")
         elif(amount>0 and amount<=MAX_WITHDRAW):
             self.__balance -= amount
-            self.history.append(f"Withdraw: {amount}")
-            print(f"Withdraw amount {amount}, new balance is {self.__balance}")
+            self.__history.append(f"Withdraw: {amount}")
+            return("SUCCESS",f"Withdraw amount {amount}, new balance is {self.__balance}")
         elif amount > MAX_WITHDRAW:
             self.__balance -= MAX_WITHDRAW
-            self.history.append(f"withdraw: {MAX_WITHDRAW}")
-            print(f"Withdraw amount 25000 , new balance is {self.__balance}")
-            print(f"Sorry but you reached the withdrawal limit. withdraw remaining amount {amount - MAX_WITHDRAW} in your next transection.. ")
-    
+            self.__history.append(f"withdraw: {MAX_WITHDRAW}")
+            return("SUCCESS", f"Withdraw amount {MAX_WITHDRAW} , new balance is {self.__balance}")
+        else:
+            return("INVALID" , "Please Enter a valid number")
+
     def transection(self, receiver , amount):
         if amount <= 0:
-         print("Amount must be positive!")
-         return
-
+            return("NEGATIVE AMOUNT" , "Amount must be positive!")
+         
         if self.__balance >= amount:
             self.__balance -= amount
             receiver.__balance += amount
-            print(f"{amount} transferred from {self.acc_no} to {receiver.acc_no}")
-        else:
-            print("Insufficient funds!")
+
+            self.__history.append(f"Send:{amount} to {receiver.__acc_no}")
+            receiver.__history.append(f"Receive:{amount} from {self.__acc_no}")
+
+            return("SUCCESS",f"{amount} transferred from {self.acc_no} to {receiver.acc_no}")
         
-        self.__history.append(f"Send:{amount} to {receiver.__acc_no}")
-        receiver.__history.append(f"Receive:{amount} from {self.__acc_no}")
-    
+        elif(amount > self.__balance):
+            return("NO FUNDS","Insufficient funds!")
+        else:
+            return("INVALID" , "Please Enter a valid number")
+        
+        
     
     def check_balance(self):
-        print(f"{self.__name}'s account balance = {self.__balance}")
-
+        return(f"{self.__name}'s account balance = {self.__balance}")
 
     def show_history(self):
-        print("Transaction History:")
-        for entry in self.history: 
-            print(entry)
+        return self.__history
 
     def load_history(self, history_list):
         self.__history = history_list
