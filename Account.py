@@ -77,6 +77,9 @@ class Account:
         for entry in self.history: 
             print(entry)
 
+    def load_history(self, history_list):
+        self.__history = history_list
+
 
 
         
